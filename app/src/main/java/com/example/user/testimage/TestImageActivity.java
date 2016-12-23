@@ -1,8 +1,12 @@
 package com.example.user.testimage;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -14,42 +18,179 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.R.attr.start;
 
 public class TestImageActivity extends AppCompatActivity {
-
     Activity act = this;
+
+    public static int newnote1 = -1, newnote2 = -1; //두 칸노트생성함수의 새 노트위치 변수
+    private static int save1 =-1, save2=-1;
+    public static int oldsave1 = -1, oldsave2 = -1; //새 노트위치생성과 동시에 다음 노트생성을 위한
+    public static int orCheck = -1;
+    //                     old노트위치
+
+    public static int newnote = -1; //한 칸 노트생성함수의 새 노트위치 변수
+    private static int save =-1;
+    public static int oldsave = -1; //새 노트위치생성과 동시에 다음 노트생성을 위한 old노트위치
+
+    public static void sort1(int a) {                    //한개의 노트가 생성될 위치를 정하는 함수
+//        System.out.println(a+" old note");	//마지막으로 생성된 old노트위치
+        while (true) {                        //랜덤으로 노트위치를 정할 while문
+            Random r = new Random();
+            int mr = r.nextInt(9);                                // 0~8까지 총9개의 숫자중 하나를 랜덤으로 생성
+            if (mr != a && mr != oldsave1 && mr != oldsave2) {    //랜덤숫자(mr)가 이전노트위치(a)와 다를경우
+                save = mr;                                    // 새롭게 생성될 노트위치로
+            } else {
+                continue;                                        //숫자가 겹칠경우 다시
+            }
+            oldsave = save;                                    //또 다음 새 노트위치를 설정하기 위해 old노트위치로 save
+            break;                                                //위치생성완료 후 while문 빠져나옴
+        } // while문 종료
+    } //sort1 함수 종료
+
+    public static void sort2(int b, int c) {                //2개의 노트가 동시에 생성될 위치를 정하는 함수(b와c는 이전 노트위치를 받을
+        //         parameter)
+        System.out.println(b+" old note1");                 // 마지막으로 생성된 노트위치1
+        System.out.println(c+" old note2");                 // 마지막으로 생성된 노트위치2
+        while (true) {                                        //랜덤으로 노트위치를 정할 while문
+            Random r = new Random();
+            int mr1 = r.nextInt(9);                            // 0~8까지 총9개의 숫자중 하나를 랜덤으로 생성
+
+//            if(oldsave!=-1){
+
+            if (mr1 != b && mr1 != c && mr1 != oldsave) {    // 이전에 생성된 노트위치(b,c)와 다른 숫자일경우
+                save1 = mr1;                                // 새롭게 생성될 노트위치1로
+                int mr2 = r.nextInt(9);
+                if (mr2 != mr1 && mr2 != b && mr2 != c && mr2 != oldsave) {// 이전에 생성된 노트위치(b,c)와 노트위치1과 다른
+                    //                    숫자일경우
+                    save2 = mr2;                            // 새롭게 생성될 노트위치2로
+                    oldsave = -1;
+                } else {
+                    continue;
+                }                            //숫자가 겹칠경우 다시
+            } else {
+                continue;
+            }                                //숫자가 겹칠경우 다
+//            else{
+//                if (mr1 != b && mr1 != c) {	// 이전에 생성된 노트위치(b,c)와 다른 숫자일경우
+//                    newnote1 = mr1;	                            // 새롭게 생성될 노트위치1로
+//                    int mr2 = r.nextInt(9);
+//                    if(mr2!=mr1 && mr2 != b && mr2 != c){// 이전에 생성된 노트위치(b,c)와 노트위치1과 다른
+//                        //                    숫자일경우
+//                        newnote2=mr2;	                        // 새롭게 생성될 노트위치2로
+//                    }else{continue;}	                        //숫자가 겹칠경우 다시
+//                }else{continue;}
+//            }
+            oldsave1 = save1;                                // 또 다음 새 노트위치를 설정하기 위해 oldnote1로 save
+            oldsave2 = save2;                                // 또 다음 새 노트위치를 설정하기 위해 oldnote2로 save
+            break;                                            //두 개의 위치가 모두 설정되면 while문 빠져나옴
+        } // while문 종료
+    }
+    //sort2 함수 종료
+
+    public static void random() {
+        // TODO Auto-generated method stub
+
+        Random r = new Random();
+        int make = r.nextInt(2);
+        switch(make){
+            case 0:
+                if(oldsave==-1){
+                    oldsave=0;
+                    sort1(oldsave);
+                }else{
+                    sort1(oldsave);}
+                System.out.println(newnote+" new note");
+                orCheck=0;
+                newnote = save;
+                break;
+            case 1:
+                if(oldsave1==-1){
+                    oldsave1=0;
+                    oldsave2=0;
+                    sort2(oldsave1, oldsave2);
+                }else{
+                    sort2(oldsave1, oldsave2);}
+                System.out.println(newnote1+" new note1");
+                System.out.println(newnote2+" new note2");
+//                    System.out.println("i=" + i);
+                orCheck=1;
+                newnote1 = save1;
+                newnote2 = save2;
+                break;
+
+
+        }//switch 종료
+
+    } //main함수 종료
+
+    class NoteAc extends AsyncTask{
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            super.onPostExecute(o);
+        }
+
+        @Override
+        protected void onProgressUpdate(Object[] values) {
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onCancelled(Object o) {
+            super.onCancelled(o);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test_image);
 
-        /*
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                printnote();
-            }
-        }, 2000);
-        */
-
-
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                        printnote();
+                random();
+                if (orCheck == 0) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            printnote(newnote);
+                            Log.i("체크", "1번");
+                            Log.d("노트1개", String.valueOf(newnote));
+                        }
+                    }, 3000);
+                } else if (orCheck == 1) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            printnote(newnote1);
+                            printnote(newnote2);
+                            Log.i("체크", "2번");
+                            Log.d("노트2개", String.valueOf(newnote1));
+                            Log.d("노트2개", String.valueOf(newnote2));
+                        }
+                    }, 3000);
                 }
-            }, 3000);
-
-
+                Log.i("ass", String.valueOf(orCheck));
     }
-
-    public void printnote(){
+    public void printnote(int a){
 
          final ImageButton ib;
 
-        Random k = new Random();
-        int j = k.nextInt(9);
-        switch(j){
+        switch(a){
             case 0:
                 ib = (ImageButton) findViewById(R.id.imageButton1);
                 ib.setImageResource(R.drawable.test1);
